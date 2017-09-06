@@ -9,13 +9,17 @@ from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_regression
+import matplotlib.pyplot as plt
+import numpy as np
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
-features_list = ['poi','salary','deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income',
-'total_stock_value', 'expenses', 'exercised_stock_options',  'long_term_incentive', 'restricted_stock', 'director_fees','to_messages',
-'from_poi_to_this_person', 'from_messages', 'from_this_person_to_poi', 'shared_receipt_with_poi'] # You will need to use more features
+features_list = ['poi','salary','deferral_payments', 'total_payments', 'loan_advances',
+'bonus', 'restricted_stock_deferred', 'deferred_income','total_stock_value', 'expenses',
+'exercised_stock_options',  'long_term_incentive', 'restricted_stock', 'director_fees',
+'to_messages','from_poi_to_this_person', 'from_messages', 'from_this_person_to_poi',
+'shared_receipt_with_poi'] # You will need to use more features
 
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
@@ -54,8 +58,6 @@ for feature in features_list:
 features_list = ['poi','salary', 'total_payments', 'bonus',  'deferred_income','total_stock_value', 'expenses', 'exercised_stock_options',
 'long_term_incentive', 'restricted_stock', 'director_fees','from_poi_to_this_person', 'from_this_person_to_poi', 'shared_receipt_with_poi']
 
-with open("final_project_dataset.pkl", "r") as data_file:
-    data_dict = pickle.load(data_file)
 
 print "number of features used:" + str(len(features_list))
 ## Task 2: Remove outliers
@@ -133,7 +135,7 @@ labels, features = targetFeatureSplit(data)
 
 ### Use SelectKBest to choose which feature to use for machine learning
 
-k=4
+k=5
 selKBest = SelectKBest(f_regression, k)
 
 selKBest.fit(features, labels)
@@ -145,14 +147,30 @@ mask = selKBest.get_support()
 scores = selKBest.scores_
 feature_score = zip(features_list[1:], scores)
 feature_score = list(reversed(sorted(feature_score, key=lambda x: x[1])))
+
+features=[]
+scores = []
+for feature, score in feature_score:
+    features.append(feature)
+    scores.append(float(score))
+y_pos = np.arange(len(features))
+plt.bar(y_pos, scores)
+plt.xticks(y_pos, features)
+plt.tick_params(axis='x', labelsize=5)
+plt.show()
 k_best_features = dict(feature_score[:k])
 print
 print "{0} best features: {1}\n".format(k, k_best_features.keys())
 print k_best_features
 
-
 data = featureFormat(my_dataset, k_best_features.keys(), sort_keys = True)
 labels, features = targetFeatureSplit(data)
+
+### scaling the feature
+
+from sklearn.preprocessing import MinMaxScaler
+scaler = MinMaxScaler()
+features=scaler.fit_transform(features)
 
 ### Task 4: Try a varity of classifiers
 ### Please name your classifier clf for easy export below.
@@ -181,9 +199,15 @@ features_train, features_test, labels_train, labels_test = \
 # clf5.fit(features_train, labels_train)
 # print "Gaussian Naive Bayes test score:"
 # print clf5.score(features_test, labels_test)
+#
+# from sklearn import tree
+# clf = tree.DecisionTreeClassifier(min_samples_split=5, criterion= 'gini', max_depth= 7, random_state = 42)
+# clf.fit(features_train, labels_train)
+# print "Decision Tree test score:"
+# print clf.score(features_test, labels_test)
 
 from sklearn import tree
-clf = tree.DecisionTreeClassifier(min_samples_split=5, criterion= 'gini', max_depth= 7, random_state = 42)
+clf = tree.DecisionTreeClassifier(min_samples_split=2, criterion= 'gini', max_depth= 20, random_state = 25)
 clf.fit(features_train, labels_train)
 print "Decision Tree test score:"
 print clf.score(features_test, labels_test)
@@ -196,7 +220,7 @@ print clf.score(features_test, labels_test)
 #
 # from sklearn.ensemble import RandomForestClassifier
 #
-# clf = RandomForestClassifier(n_estimators=50, min_samples_split=5, random_state = 42)
+# clf = RandomForestClassifier(n_estimators=50, min_samples_split=5, random_state = 25)
 # algo = clf.fit(features_train, labels_train)
 # print "RandomForestClassifier test score:"
 # print algo.score(features_test, labels_test)
@@ -210,13 +234,18 @@ print clf.score(features_test, labels_test)
 # print RFC.best_params_
 # print RFC.score(features_test, labels_test)
 #
-# param_grid = {'max_depth':list(range(1,100)), 'criterion':["gini", "entropy"], 'min_samples_split':list(range(2,50)), 'random_state': [42]}
+# param_grid = {'max_depth':list(range(1,100)), 'criterion':["gini"], 'min_samples_split':list(range(2,50)), 'random_state': list(range(0,30))}
 # tree = grid_search.GridSearchCV(tree.DecisionTreeClassifier(), param_grid)
 # tree.fit(features_train, labels_train)
 # print "Using grid search Decision Tree test score:"
 # print tree.best_params_
 # print tree.score(features_test, labels_test)
-
+# param_grid = {'max_depth':[1,10,20,40,50,100,200], 'criterion':["gini"], 'min_samples_split':[2,10,20,40,50,100,200], 'random_state': list(range(0,30))}
+# tree = grid_search.GridSearchCV(tree.DecisionTreeClassifier(), param_grid)
+# tree.fit(features_train, labels_train)
+# print "Using grid search Decision Tree test score:"
+# print tree.best_params_
+# print tree.score(features_test, labels_test)
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
 ### check your results. You do not need to change anything below, but make sure
 ### that the version of poi_id.py that you submit can be run on its own and
