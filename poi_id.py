@@ -155,8 +155,9 @@ for feature, score in feature_score:
     scores.append(float(score))
 y_pos = np.arange(len(features))
 plt.bar(y_pos, scores)
-plt.xticks(y_pos, features)
-plt.tick_params(axis='x', labelsize=5)
+plt.xlabel('features',horizontalalignment='left')
+plt.xticks(y_pos, features, rotation=15)
+plt.tick_params(axis='x', labelsize=8)
 plt.show()
 k_best_features = dict(feature_score[:k])
 print
@@ -246,9 +247,6 @@ print clf.score(features_test, labels_test)
 # print "Using grid search Decision Tree test score:"
 # print tree.best_params_
 # print tree.score(features_test, labels_test)
-### Task 6: Dump your classifier, dataset, and features_list so anyone can
-### check your results. You do not need to change anything below, but make sure
-### that the version of poi_id.py that you submit can be run on its own and
-### generates the necessary .pkl files for validating your results.
+
 
 dump_classifier_and_data(clf, my_dataset, features_list)
