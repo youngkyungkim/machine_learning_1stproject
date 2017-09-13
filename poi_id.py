@@ -164,8 +164,13 @@ print
 print "{0} best features: {1}\n".format(k, k_best_features.keys())
 print k_best_features
 
-data = featureFormat(my_dataset, k_best_features.keys(), sort_keys = True)
+best_features = ['poi']
+for i in k_best_features.keys():
+    best_features.append(i)
+
+data = featureFormat(my_dataset, best_features, sort_keys = True)
 labels, features = targetFeatureSplit(data)
+
 
 ### scaling the feature
 
@@ -194,8 +199,17 @@ clf5 = GaussianNB()
 
 # Example starting point. Try investigating other evaluation techniques!
 from sklearn.cross_validation import train_test_split
+from sklearn.cross_validation import StratifiedShuffleSplit
+
+
 features_train, features_test, labels_train, labels_test = \
     train_test_split(features, labels, test_size=0.3, random_state=42)
+
+
+
+
+split_data = StratifiedShuffleSplit(labels, 1000, random_state=42)
+
 
 # clf5.fit(features_train, labels_train)
 # print "Gaussian Naive Bayes test score:"
@@ -209,7 +223,8 @@ features_train, features_test, labels_train, labels_test = \
 
 from sklearn import tree
 clf = tree.DecisionTreeClassifier(min_samples_split=2, criterion= 'gini', max_depth= 20, random_state = 25)
-clf.fit(features_train, labels_train)
+# clf = tree.DecisionTreeClassifier(min_samples_split=2, criterion= 'gini', max_depth= 1, random_state = 42)
+clf.fit(features, labels)
 print "Decision Tree test score:"
 print clf.score(features_test, labels_test)
 
@@ -220,27 +235,30 @@ print clf.score(features_test, labels_test)
 # print clf3.score(features_test, labels_test)
 #
 # from sklearn.ensemble import RandomForestClassifier
-#
-# clf = RandomForestClassifier(n_estimators=50, min_samples_split=5, random_state = 25)
+# #
+# clf = RandomForestClassifier(n_estimators=100, min_samples_split=5, random_state = 42)
 # algo = clf.fit(features_train, labels_train)
 # print "RandomForestClassifier test score:"
 # print algo.score(features_test, labels_test)
-# ### will do grid search to do cross validate
+### will do grid search to do cross validate
+#
 # from sklearn import grid_search
-# #
+# # #
 # param_grid = {'n_estimators': [1, 25, 50, 100,200], 'min_samples_split':[2, 5,10,20,30], 'random_state': [42]}
-# RFC = grid_search.GridSearchCV(RandomForestClassifier(), param_grid)
-# RFC.fit(features_train, labels_train)
+# RFC = grid_search.GridSearchCV(RandomForestClassifier(), param_grid, cv=split_data)
+# RFC.fit(features, labels)
 # print "Using grid search RandomForestClassifier test score:"
 # print RFC.best_params_
 # print RFC.score(features_test, labels_test)
+# clf = RFC.best_estimator
 #
-# param_grid = {'max_depth':list(range(1,100)), 'criterion':["gini"], 'min_samples_split':list(range(2,50)), 'random_state': list(range(0,30))}
-# tree = grid_search.GridSearchCV(tree.DecisionTreeClassifier(), param_grid)
-# tree.fit(features_train, labels_train)
+# param_grid = {'max_depth':list(range(1,100)),'criterion':["gini"], 'min_samples_split':list(range(2,80)), 'random_state': [25]}
+# tree = grid_search.GridSearchCV(tree.DecisionTreeClassifier(), param_grid, cv=split_data)
+# tree.fit(features, labels)
 # print "Using grid search Decision Tree test score:"
 # print tree.best_params_
 # print tree.score(features_test, labels_test)
+
 # param_grid = {'max_depth':[1,10,20,40,50,100,200], 'criterion':["gini"], 'min_samples_split':[2,10,20,40,50,100,200], 'random_state': list(range(0,30))}
 # tree = grid_search.GridSearchCV(tree.DecisionTreeClassifier(), param_grid)
 # tree.fit(features_train, labels_train)
